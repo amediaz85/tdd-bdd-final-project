@@ -89,8 +89,8 @@ def create_products():
     #
     # Uncomment this line of code once you implement READ A PRODUCT
     #
-    # location_url = url_for("get_products", product_id=product.id, _external=True)
-    location_url = "/"  # delete once READ is implemented
+    location_url = url_for("get_products", product_id=product.id, _external=True)
+    #location_url = "/"  # delete once READ is implemented
     return jsonify(message), status.HTTP_201_CREATED, {"Location": location_url}
 
 ######################################################################
@@ -110,6 +110,28 @@ def get_products(product_id):
         abort(status.HTTP_404_NOT_FOUND, f"Product with id '{product_id}' was not found.")
 
     app.logger.info("Returning product: %s", product.name)
+    return product.serialize(), status.HTTP_200_OK
+
+######################################################################
+# UPDATE AN EXISTING PRODUCT
+######################################################################
+@app.route("/products/<int:product_id>", methods=["PUT"])
+def update_products(product_id):
+    """
+    Update a Product
+
+    This endpoint will update a Product based the body that is posted
+    """
+    app.logger.info("Request to Update a product with id [%s]", product_id)
+    check_content_type("application/json")
+
+    product = Product.find(product_id)
+    if not product:
+        abort(status.HTTP_404_NOT_FOUND, f"Product with id '{product_id}' was not found.")
+
+    product.deserialize(request.get_json())
+    product.id = product_id
+    product.update()
     return product.serialize(), status.HTTP_200_OK
 
 ######################################################################
